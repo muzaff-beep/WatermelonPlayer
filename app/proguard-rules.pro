@@ -1,59 +1,46 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.kts.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Keep all classes that have the @Keep annotation
+-keep class android.support.annotation.Keep
+-keep @android.support.annotation.Keep class * {*;}
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
-# Preserve annotations for Jetpack Compose
--keepattributes RuntimeVisibleAnnotations
-
-# Keep ExoPlayer classes
--keep class androidx.media3.** { *; }
-
-# Keep Room database classes
+# Keep Room database
 -keep class * extends androidx.room.RoomDatabase
--keep @androidx.room.Entity class *
+-keep class * extends androidx.room.Entity
 
-# Keep Koin definitions
+# Keep Koin
 -keep class org.koin.** { *; }
 
-# Keep Coil image loading
--keep class coil.** { *; }
+# Keep Kotlin coroutines
+-keep class kotlinx.coroutines.** { *; }
 
-# Don't warn about okhttp
--dontwarn okhttp3.**
+# Keep Media3/ExoPlayer
+-keep class com.google.android.exoplayer2.** { *; }
+-keep class androidx.media3.** { *; }
 
-# Don't warn about retrofit
--dontwarn retrofit2.**
+# Keep AndroidX components
+-keep class androidx.lifecycle.** { *; }
+-keep class androidx.compose.** { *; }
 
-# Security crypto
--keep class androidx.security.** { *; }
+# Keep application class
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
 
-# For debugging, keep line numbers
--keepattributes SourceFile,LineNumberTable
+# Keep view models
+-keep class * extends androidx.lifecycle.ViewModel { *; }
 
-# Optimize: remove logging in release
--assumenosideeffects class timber.log.Timber {
-    public static *** d(...);
-    public static *** v(...);
-    public static *** i(...);
+# Keep parcelable classes
+-keep class * implements android.os.Parcelable {
+  public static final android.os.Parcelable$Creator *;
 }
 
-# Keep parcelize
--keep class * implements kotlinx.parcelize.Parceler { *; }
+# Keep Serializable classes
+-keepnames class * implements java.io.Serializable
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
