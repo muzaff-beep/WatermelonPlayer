@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        google()
+        google()               // Added - required for KSP plugin
         mavenCentral()
         gradlePluginPortal()
     }
