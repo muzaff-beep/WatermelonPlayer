@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.watermelon.player">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions: Edition-specific; Iran edition has no internet -->
+    <!-- Common permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!-- Global edition only: Network permissions -->
-    <uses-permission android:name="android.permission.INTERNET"
-        tools:remove="android:name" android:required="false" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
-        tools:remove="android:name" android:required="false" />
+
+    <!-- Global-only network permissions removed for offline Iran edition -->
+    <!-- Add these back later in src/global/AndroidManifest.xml -->
+    <!-- <uses-permission android:name="android.permission.INTERNET" /> -->
+    <!-- <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> -->
 
     <application
         android:name=".WatermelonApp"
@@ -38,7 +37,8 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Handle media file intents -->
+
+            <!-- Handle local file intents -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -50,32 +50,19 @@
             </intent-filter>
         </activity>
 
-        <!-- Services -->
+        <!-- Services (add more as implemented) -->
         <service
             android:name=".service.PlaybackService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback">
-            <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
-            </intent-filter>
-        </service>
+            android:foregroundServiceType="mediaPlayback" />
+
         <service
             android:name=".service.IndexingService"
             android:exported="false" />
+
         <service
             android:name=".service.DownloadService"
-            android:exported="false"
-            tools:ignore="ExportedService" />
-
-        <!-- Receiver for updates or boot -->
-        <receiver
-            android:name=".update.UpdateReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+            android:exported="false" />
 
     </application>
-
 </manifest>
