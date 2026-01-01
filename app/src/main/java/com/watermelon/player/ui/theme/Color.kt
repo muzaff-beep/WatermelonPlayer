@@ -2,6 +2,7 @@ package com.watermelon.player.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val WatermelonPrimary = Color(0xFFE91E63)
-val WatermelonSecondary = Color(0xFF03DAC6)
-val WatermelonTertiary = Color(0xFF03DAC6)
+val WatermelonRed = Color(0xFFF44336)
+val WatermelonGreen = Color(0xFF4CAF50)
+val WatermelonDarkGreen = Color(0xFF388E3C)
+val WatermelonLightGreen = Color(0xFF81C784)
