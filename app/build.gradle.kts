@@ -50,8 +50,8 @@ android {
         }
     }
 
-    // FIXED: Use = listOf() instead of +=
-    flavorDimensions = listOf("edition")
+    // FIXED: Use add() instead of assignment
+    flavorDimensions.add("edition")
 
     productFlavors {
         create("iran") {
