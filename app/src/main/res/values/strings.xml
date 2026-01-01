@@ -1,4 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Watermelon Player</string>
+    <!-- Existing strings -->
+    
+    <!-- Phase 2: Player Strings -->
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="playback_service_running">Watermelon Player is running</string>
+    <string name="playback_channel_name">Playback</string>
+    <string name="playback_channel_description">Media playback controls</string>
+    <string name="unknown_track">Unknown Track</string>
+    <string name="buffering">Buffering…</string>
+    <string name="playback_error">Playback Error</string>
+    <string name="watermelon_player">Watermelon Player</string>
 </resources>
