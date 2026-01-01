@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        google()               // Required for KSP plugin
+        google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -11,7 +11,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
     }
 }
 
