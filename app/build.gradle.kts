@@ -21,7 +21,6 @@ android {
             useSupportLibrary = true
         }
 
-        // Build config
         buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
         buildConfigField("String", "BUILD_TIMESTAMP", "\"${System.currentTimeMillis()}\"")
     }
@@ -51,7 +50,6 @@ android {
         }
     }
 
-    // Product flavors for dual-mode
     flavorDimensions += "edition"
     productFlavors {
         create("iran") {
@@ -59,12 +57,14 @@ android {
             applicationIdSuffix = ".ir"
             versionNameSuffix = "-ir"
             buildConfigField("boolean", "IS_IRAN_EDITION", "true")
+            buildConfigField("String", "DEFAULT_EDITION", "\"iran\"")
         }
         create("global") {
             dimension = "edition"
             applicationIdSuffix = ".global"
             versionNameSuffix = "-global"
             buildConfigField("boolean", "IS_IRAN_EDITION", "false")
+            buildConfigField("String", "DEFAULT_EDITION", "\"global\"")
         }
     }
 
@@ -101,18 +101,16 @@ android {
 dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
-    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+    implementation("androidx.activity:activity-compose:1.9.0")
 
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2024.06.01"))
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.tv:tv-foundation:1.0.0")
-    implementation("androidx.tv:tv-material:1.0.0")
 
     // Media3 (ExoPlayer)
     implementation("androidx.media3:media3-exoplayer:1.3.1")
@@ -121,22 +119,42 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.3.1")
     implementation("androidx.media3:media3-session:1.3.1")
     implementation("androidx.media3:media3-datasource:1.3.1")
+    implementation("androidx.media3:media3-datasource-okhttp:1.3.1")
 
     // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
+    // Networking (for subtitles/streaming in global)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Security
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Image loading
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-video:2.6.0")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+
+    // DI
+    implementation("io.insert-koin:koin-android:3.5.6")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.6")
+
+    // Storage Access Framework
+    implementation("androidx.documentfile:documentfile:1.0.1")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.01"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-
-    // TODO: Iranian payments - add back later when AARs are available
-    // "iranImplementation"(files("libs/zarinpal.aar"))
-    // "iranImplementation"(files("libs/idpay.aar"))
 }
