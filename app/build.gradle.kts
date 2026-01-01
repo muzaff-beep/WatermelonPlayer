@@ -105,17 +105,18 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.activity:activity-compose:1.9.3")
 
-    // Compose - FIXED VERSIONS (use latest stable BOM)
-    implementation(platform("androidx.compose:compose-bom:2025.10.01"))  // Update to latest real version
+    // Compose - Stable BOM (latest as of 2026)
+    implementation(platform("androidx.compose:compose-bom:2025.10.01"))
+
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
-    // TV support - FIXED (use correct package/version)
-    implementation("androidx.tv:tv-foundation:1.0.0-beta10")  // or 1.1.0-alpha01 if stable
-    implementation("androidx.tv:tv-material:1.0.0-beta10")
+    // TV Compose - FIXED VERSIONS (real existing ones)
+    implementation("androidx.tv:tv-foundation:1.0.0-alpha12")  // Latest alpha
+    implementation("androidx.tv:tv-material:1.0.1")           // Stable
 
     // Media3 (ExoPlayer)
     implementation("androidx.media3:media3-exoplayer:1.3.1")
