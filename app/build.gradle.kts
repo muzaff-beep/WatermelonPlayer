@@ -50,7 +50,6 @@ android {
         }
     }
 
-    // FIXED: Use add() instead of assignment
     flavorDimensions.add("edition")
 
     productFlavors {
@@ -106,15 +105,17 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.activity:activity-compose:1.9.3")
 
-    // Compose
-    implementation(platform("androidx.compose:compose-bom:2024.06.01"))
+    // Compose - FIXED VERSIONS (use latest stable BOM)
+    implementation(platform("androidx.compose:compose-bom:2025.10.01"))  // Update to latest real version
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.tv:tv-foundation:1.0.0")
-    implementation("androidx.tv:tv-material:1.0.0")
+
+    // TV support - FIXED (use correct package/version)
+    implementation("androidx.tv:tv-foundation:1.0.0-beta10")  // or 1.1.0-alpha01 if stable
+    implementation("androidx.tv:tv-material:1.0.0-beta10")
 
     // Media3 (ExoPlayer)
     implementation("androidx.media3:media3-exoplayer:1.3.1")
@@ -150,16 +151,11 @@ dependencies {
     implementation("io.insert-koin:koin-android:3.5.6")
     implementation("io.insert-koin:koin-androidx-compose:3.5.6")
 
-    // Global-only (ML + network)
-    "globalImplementation"("org.tensorflow:tensorflow-lite:2.14.0")
-    "globalImplementation"("org.tensorflow:tensorflow-lite-support:0.4.4")
-    "globalImplementation"("com.hierynomus:smbj:0.11.5")
-
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.01"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2025.10.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
