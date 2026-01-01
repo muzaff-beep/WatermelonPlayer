@@ -87,7 +87,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"  // Compatible with AGP 8.5.0
+        kotlinCompilerExtensionVersion = "1.5.5"
     }
 
     packaging {
@@ -104,20 +104,16 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
 
-    // Compose - COMPATIBLE VERSIONS for AGP 8.5.0
-    implementation(platform("androidx.compose:compose-bom:2023.10.01"))  // OLDER VERSION
+    // Compose - COMPATIBLE with AGP 8.5.0
+    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    
-    // TV Support (optional, can comment out if issues)
-    // implementation("androidx.tv:tv-foundation:1.0.0")
-    // implementation("androidx.tv:tv-material:1.0.0")
 
-    // Media3 (ExoPlayer)
-    implementation("androidx.media3:media3-exoplayer:1.2.1")  // Slightly older, stable
+    // Media3 (ExoPlayer) - Stable version
+    implementation("androidx.media3:media3-exoplayer:1.2.1")
     implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
@@ -132,9 +128,6 @@ dependencies {
 
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
-
-    // Security
-    implementation("androidx.security:security-crypto:1.0.0")
 
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.8.1")
