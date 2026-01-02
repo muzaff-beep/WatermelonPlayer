@@ -10,7 +10,11 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import com.watermelon.player.security.TamperDetector
 
+// Add to onCreate()
+CrashReporter.initialize(this)
+LowMemoryHandler.register(this)
 
+// Add WorkManager config if needed
 
 @HiltAndroidApp
 class WatermelonApp : Application(), Configuration.Provider {
