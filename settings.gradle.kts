@@ -1,7 +1,7 @@
 pluginManagement {
     repositories {
         google()
-        mavenCentral()
+        mavenCentral() // Critical for Hilt plugin
         gradlePluginPortal()
     }
 }
