@@ -8,6 +8,33 @@ import com.watermelon.player.config.EditionManager
 import com.watermelon.player.util.PerformanceMonitor
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
+import com.watermelon.player.security.TamperDetector
+
+
+
+@HiltAndroidApp
+class WatermelonApp : Application(), Configuration.Provider {
+
+    // ... existing code ...
+
+    override fun onCreate() {
+        super.onCreate()
+        instance = this
+
+        // Tamper detection on startup
+        if (BuildConfig.RELEASE && TamperDetector.isTampered(this)) {
+            TamperDetector.handleTamper()
+            return // Exit early
+        }
+
+        EditionManager.initialize(this)
+        PerformanceMonitor.startMonitoring(this)
+        PerformanceMonitor.configureCoilForLowRam(this)
+
+        // ... rest unchanged ...
+    }
+}
+
 
 /**
  * WatermelonApp.kt
