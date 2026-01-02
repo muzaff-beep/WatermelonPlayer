@@ -60,7 +60,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.10" // Compatible with Kotlin 1.9.23
+        kotlinCompilerExtensionVersion = "1.4.8" // Matches Kotlin 1.8.22
     }
 
     packaging {
@@ -104,11 +104,7 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // Compatible with Kotlin 1.8.22
 }
 
 kapt {
