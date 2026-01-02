@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">پخش کننده واترملون</string>
+    <string name="loading_text">در حال بارگذاری...</string>
+    <string name="no_media_found">هیچ ویدیو یا تصویری یافت نشد. USB/SD وارد کنید.</string>
+    <string name="subtitles">زیرنویس</string>
+    <string name="vhs_effect">افکت VHS</string>
+    <string name="fit_mode_zoom">پر کردن صفحه</string>
+    <string name="fit_mode_fit">حفظ نسبت اصلی</string>
+</resources>
