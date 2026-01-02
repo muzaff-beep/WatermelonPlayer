@@ -1,98 +1,84 @@
 package com.watermelon.player
 
 import android.app.Application
-import android.os.Build
-import androidx.media3.common.util.UnstableApi
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.decode.VideoFrameDecoder
+import android.content.Context
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import com.watermelon.player.config.EditionManager
-import com.watermelon.player.database.MediaDatabase
-import com.watermelon.player.di.appModule
-import com.watermelon.player.security.CrashReporter
-import com.watermelon.player.security.TamperDetector
 import com.watermelon.player.util.PerformanceMonitor
-import io.insert-koin.android.ext.koin.androidContext
-import io.insert-koin.core.context.startKoin
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import timber.log.Timber
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
-@UnstableApi class WatermelonApp : Application(), ImageLoaderFactory {
+/**
+ * WatermelonApp.kt
+ * Purpose: Application singleton – entry point for app-wide initialization.
+ * Responsibilities:
+ *   - Hilt/DI setup (annotated with @HiltAndroidApp)
+ *   - Edition detection (Iran vs Global) via EditionManager
+ *   - Start performance monitoring (RAM/GC watchdog)
+ *   - Configure Coil for low-RAM (critical for TVs and A23)
+ *   - Future: WorkManager config, crash reporting stub (no remote)
+ *
+ * Why here? Runs once on process start – perfect for one-time heavy init.
+ * Iran-first: No Crashlytics, no Analytics, no network on startup.
+ */
 
-    private val appScope = CoroutineScope(Dispatchers.IO)
+@HiltAndroidApp
+class WatermelonApp : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory   // For future IndexingService workers
+
+    companion object {
+        // Global access to app context if needed (use sparingly – prefer DI)
+        lateinit var instance: WatermelonApp
+            private set
+    }
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
 
-        // Initialize logging
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
-
-        // Initialize DI
-        startKoin {
-            androidContext(this@WatermelonApp)
-            modules(appModule)
-        }
-
-        // Initialize edition
+        // Step 1: Initialize EditionManager – determines entire app behavior
+        // Must run first – many modules depend on EditionManager.isIranEdition
         EditionManager.initialize(this)
 
-        // Security checks
-        TamperDetector.checkIntegrity(this)
+        // Step 2: Start performance monitoring – critical for low-RAM devices
+        // Enforces GC, clears Coil caches when RAM > 150MB idle
+        PerformanceMonitor.startMonitoring(this)
 
-        // Performance monitoring
-        PerformanceMonitor.initialize()
+        // Step 3: Configure Coil globally for low-RAM policy
+        // Disables memory cache (L1), uses minimal disk cache
+        // Called here so all ImageLoaders inherit the config
+        PerformanceMonitor.configureCoilForLowRam(this)
 
-        // Initialize database
-        MediaDatabase.initialize(this)
-
-        // Start background tasks
-        appScope.launch {
-            // Pre-warm frequently used components
-            preWarmComponents()
-
-            // Check for updates
-            checkForUpdates()
-        }
+        // Step 4: Future hooks
+        // TODO: Initialize Room database migration
+        // TODO: Pre-warm indexing queue if USB detected
+        // TODO: Check for manual APK update flag
     }
 
-    override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
-            .components {
-                add(VideoFrameDecoder.Factory())
-            }
-            .crossfade(true)
+    // WorkManager configuration – required when using Hilt workers
+    override fun getWorkManagerConfiguration(): Configuration {
+        return Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .setMinimumLoggingLevel(android.util.Log.INFO)
             .build()
     }
 
-    private fun preWarmComponents() {
-        // Pre-warm ExoPlayer
-        androidx.media3.exoplayer.ExoPlayer.Builder(this).build().release()
-
-        // Pre-warm encryption
-        javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+    // Optional: Low-memory handler – aggressive cleanup
+    override fun onLowMemory() {
+        super.onLowMemory()
+        // Force immediate GC and cache clear on system low-memory signal
+        PerformanceMonitor.enforceLowRamPolicy()
     }
 
-    private fun checkForUpdates() {
-        // Edition-specific update check
-        when (EditionManager.getCurrentEdition()) {
-            is EditionManager.Edition.Iran -> {
-                // Check Iranian app stores
-                com.watermelon.player.update.CafeBazaarUpdater.checkForUpdates(this)
-            }
-            is EditionManager.Edition.Global -> {
-                // Check Google Play
-                com.watermelon.player.update.GooglePlayUpdater.checkForUpdates(this)
-            }
+    // Trim memory callback – used by Android when app in background
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_BACKGROUND) {
+            // Aggressive cleanup when app not visible
+            PerformanceMonitor.enforceLowRamPolicy()
         }
-    }
-
-    override fun onTerminate() {
-        // Clean up resources
-        PerformanceMonitor.shutdown()
-        super.onTerminate()
     }
 }
