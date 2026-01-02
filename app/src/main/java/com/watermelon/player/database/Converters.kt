@@ -1,16 +1,26 @@
 package com.watermelon.player.database
 
 import androidx.room.TypeConverter
-import java.util.*
+
+/**
+ * Converters.kt
+ * Room TypeConverters for non-primitive fields.
+ * Currently:
+ *   - String ↔ List<String> for future tag lists (currently tags are comma-separated String)
+ *   - Can expand for Uri, Date, etc.
+ */
 
 class Converters {
+
     @TypeConverter
-    fun fromTimestamp(value: Long?): Date? {
-        return value?.let { Date(it) }
+    fun fromStringList(list: List<String>?): String? {
+        return list?.joinToString(",")
     }
-    
+
     @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? {
-        return date?.time
+    fun toStringList(data: String?): List<String>? {
+        return data?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
     }
+
+    // Future: add for tags Set, Uri, etc.
 }
