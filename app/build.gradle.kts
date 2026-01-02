@@ -74,6 +74,22 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+ 
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
+    implementation("androidx.media3:media3-session:1.3.1")
+
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+
+    implementation("coil-compose:coil-compose:3.0.0-alpha06") // Latest Coil3
+
+    implementation("org.opencv:opencv-android:4.8.0") // Lite version only
+
+    // No internet deps in iran flavor
 
     // Compose
     implementation("androidx.activity:activity-compose:1.9.0")
