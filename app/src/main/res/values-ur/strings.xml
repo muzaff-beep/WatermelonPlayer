@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">واٹر میلن پلیئر</string>
+    <string name="loading_text">لوڈ ہو رہا ہے...</string>
+    <string name="no_media_found">کوئی ویڈیو یا تصاویر نہیں ملیں۔ USB/SD داخل کریں۔</string>
+    <string name="subtitles">سب ٹائٹلز</string>
+    <string name="vhs_effect">VHS ایفیکٹ</string>
+</resources>
