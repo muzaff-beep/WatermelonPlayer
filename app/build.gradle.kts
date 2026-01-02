@@ -1,8 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("dagger.hilt.android.plugin")
-    kotlin("kapt")
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -18,9 +18,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Iran flavor defaults
+        // Manifest placeholders & build config
         manifestPlaceholders["appName"] = "@string/app_name"
-        buildConfigField("Boolean", "IS_IRAN_EDITION", "true")
     }
 
     buildTypes {
@@ -31,10 +30,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug") // Replace with real in production
         }
         debug {
-            isMinifyEnabled = false
             applicationIdSuffix = ".debug"
         }
     }
@@ -46,8 +43,6 @@ android {
             applicationIdSuffix = ".iran"
             versionNameSuffix = "-iran"
             buildConfigField("Boolean", "IS_IRAN_EDITION", "true")
-            manifestPlaceholders["appName"] = "@string/app_name"
-            // No internet permission in manifest
         }
         create("global") {
             dimension = "edition"
@@ -83,8 +78,7 @@ android {
 }
 
 dependencies {
-
-    // Core Android
+    // Core
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.activity:activity-compose:1.9.0")
@@ -97,12 +91,10 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    // Media3 (ExoPlayer)
+    // Media3
     implementation("androidx.media3:media3-exoplayer:1.3.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
     implementation("androidx.media3:media3-ui:1.3.1")
     implementation("androidx.media3:media3-session:1.3.1")
-    implementation("androidx.media3:media3-common:1.3.1")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51")
@@ -114,14 +106,14 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
 
-    // Coil 3 (Compose image loading)
+    // Coil3
     implementation("io.coil-kt.coil3:coil-compose:3.0.0-alpha06")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.0-alpha06")
 
-    // OpenCV Lite (for smart tagging – optional, small)
+    // OpenCV Lite (optional for smart tagging)
     implementation("org.opencv:opencv-android:4.8.0")
 
-    // WorkManager (for indexing)
+    // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Coroutines
