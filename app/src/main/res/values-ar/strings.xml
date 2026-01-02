@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">مشغل ووترميلون</string>
+    <string name="loading_text">جاري التحميل...</string>
+    <string name="no_media_found">لم يتم العثور على فيديو أو صور. أدخل USB/SD.</string>
+    <string name="subtitles">الترجمة</string>
+    <string name="vhs_effect">تأثير VHS</string>
+</resources>
