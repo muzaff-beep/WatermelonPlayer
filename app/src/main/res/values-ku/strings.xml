@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">پلەیەری واتەرمێلۆن</string>
+    <string name="loading_text">بەردەوام دەکرێتەوە...</string>
+    <string name="no_media_found">هیچ ڤیدیۆ یان وێنەیەک نەدۆزرایەوە. USB/SD دابنێ.</string>
+    <string name="subtitles">ژێرنووس</string>
+    <string name="vhs_effect">کاریگەری VHS</string>
+</resources>
