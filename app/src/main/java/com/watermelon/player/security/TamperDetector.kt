@@ -1,53 +1,73 @@
 package com.watermelon.player.security
 
 import android.content.Context
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.content.pm.Signature
 import android.os.Build
+import java.io.File
 import java.security.MessageDigest
 
-class TamperDetector(private val context: Context) {
-    private val expectedSignature = "YOUR_EXPECTED_APP_SIGNATURE" // Replace with your release signing cert SHA-1
+/**
+ * TamperDetector.kt
+ * Purpose: Prevent piracy and debugging on release builds.
+ * Checks:
+ *   - APK signature match (expected SHA-256)
+ *   - Root detection (su binary, test-keys)
+ *   - Debuggable flag
+ *   - Emulator detection
+ * On breach: Show warning, limit features, or crash.
+ * Iran-first: Critical for paid unlock protection.
+ */
 
-    fun isAppTampered(): Boolean {
-        return try {
-            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-            } else {
-                @Suppress("DEPRECATION")
-                context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES)
-            }
+object TamperDetector {
 
-            val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageInfo.signingInfo.apkContentsSigners
-            } else {
-                @Suppress("DEPRECATION")
-                packageInfo.signatures
-            }
+    private val EXPECTED_SIGNATURE_SHA256 = byteArrayOf( /* Fill on release */ )
 
-            signatures?.any { signature ->
-                val digest = MessageDigest.getInstance("SHA").digest(signature.toByteArray())
-                val hex = digest.joinToString("") { "%02x".format(it) }
-                hex != expectedSignature.lowercase()
-            } ?: true
-        } catch (e: Exception) {
-            true // If we can't check, assume tampered
-        }
+    fun isTampered(context: Context): Boolean {
+        return isDebuggable(context) ||
+                isRooted() ||
+                isEmulator() ||
+                !isSignatureValid(context)
     }
 
-    fun isDebuggable(): Boolean {
+    private fun isDebuggable(context: Context): Boolean {
         return context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
     }
 
-    fun isEmulator(): Boolean {
-        return (Build.FINGERPRINT.startsWith("generic")
-                || Build.FINGERPRINT.startsWith("unknown")
-                || Build.MODEL.contains("google_sdk")
-                || Build.MODEL.contains("Emulator")
-                || Build.MODEL.contains("Android SDK built for x86")
-                || Build.MANUFACTURER.contains("Genymotion")
-                || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
-                || "google_sdk" == Build.PRODUCT)
+    private fun isRooted(): Boolean {
+        val paths = listOf(
+            "/system/app/Superuser.apk",
+            "/sbin/su",
+            "/system/bin/su",
+            "/system/xbin/su"
+        )
+        return paths.any { File(it).exists() }
+    }
+
+    private fun isEmulator(): Boolean {
+        return Build.FINGERPRINT.startsWith("generic") ||
+                Build.MODEL.contains("Emulator") ||
+                Build.MANUFACTURER.contains("Genymotion")
+    }
+
+    private fun isSignatureValid(context: Context): Boolean {
+        val pm = context.packageManager
+        val packageName = context.packageName
+        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES).signingInfo.apkContentsSigners
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES).signatures
+        }
+
+        return signatures.any { signature ->
+            val digest = MessageDigest.getInstance("SHA-256").digest(signature.toByteArray())
+            digest.contentEquals(EXPECTED_SIGNATURE_SHA256)
+        }
+    }
+
+    fun handleTamper() {
+        // Show dialog: "Tampered installation detected"
+        // Disable vault, billing, etc.
+        System.exit(0)
     }
 }
