@@ -5,23 +5,56 @@ import android.util.Log
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class CrashReporter(private val context: Context) {
-    private val crashLogDir = File(context.filesDir, "crash_logs")
+/**
+ * CrashReporter.kt
+ * Purpose: Local crash logging (no remote analytics).
+ * On uncaught exception: write stack trace to internal file.
+ * User can view/report via Settings (future).
+ * Iran-first: 100% offline, no network.
+ */
 
-    init {
-        if (!crashLogDir.exists()) crashLogDir.mkdirs()
+object CrashReporter : Thread.UncaughtExceptionHandler {
+
+    private lateinit var context: Context
+    private val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+
+    fun initialize(context: Context) {
+        this.context = context.applicationContext
+        Thread.setDefaultUncaughtExceptionHandler(this)
     }
 
-    fun logCrash(throwable: Throwable) {
-        val sw = StringWriter()
-        throwable.printStackTrace(PrintWriter(sw))
-        val stackTrace = sw.toString()
+    override fun uncaughtException(thread: Thread, throwable: Throwable) {
+        try {
+            val crashDir = File(context.filesDir, "crashes")
+            crashDir.mkdirs()
 
-        val logFile = File(crashLogDir, "crash_${System.currentTimeMillis()}.txt")
-        logFile.writeText(stackTrace)
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val crashFile = File(crashDir, "crash_$timestamp.txt")
 
-        Log.e("WatermelonCrash", "Crash logged locally: ${logFile.name}")
-        // No transmission — offline only
+            val writer = StringWriter()
+            throwable.printStackTrace(PrintWriter(writer))
+
+            crashFile.writeText(
+                """
+                Time: ${Date()}
+                Thread: ${thread.name}
+                Device: ${android.os.Build.MODEL} (API ${android.os.Build.VERSION.SDK_INT})
+                
+                Stack trace:
+                $writer
+                """.trimIndent()
+            )
+
+            Log.e("WatermelonCrash", "Crash logged to ${crashFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("CrashReporter", "Failed to log crash", e)
+        }
+
+        // Pass to system
+        defaultHandler?.uncaughtException(thread, throwable)
     }
 }
