@@ -85,27 +85,18 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    // Media3 - session includes everything
     implementation("androidx.media3:media3-session:1.9.0")
 
-    // Coil3 for image loading and low-RAM config
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // Coil3
     implementation("io.coil-kt.coil3:coil:3.0.0")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0")
 
-    // Hilt DI
+    // Hilt
     implementation("com.google.dagger:hilt-android:2.51")
     kapt("com.google.dagger:hilt-compiler:2.51")
     implementation("androidx.hilt:hilt-work:1.2.0")
     kapt("androidx.hilt:hilt-compiler:1.2.0")
 
-    // Room database - fixes NonExistentClass kapt errors
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
-
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-}
+    // Room
