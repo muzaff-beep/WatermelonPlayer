@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.watermelon.player"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -23,19 +23,17 @@ android {
 
         buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
         buildConfigField("String", "BUILD_TIMESTAMP", "\"${System.currentTimeMillis()}\"")
-    }
+    }  // ← Closed here
 
     flavorDimensions += "market"
 
     productFlavors {
         create("google") {
             dimension = "market"
-            // Optional: applicationIdSuffix = ".google"
         }
 
         create("iran") {
             dimension = "market"
-            // Optional: applicationIdSuffix = ".iran"
         }
     }
 
@@ -76,14 +74,12 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
 
     implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2025.12.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.12.01"))  // Latest patch
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    // Latest stable Media3 as of January 2026
-    implementation("androidx.media3:media3-exoplayer:1.9.0")
-    implementation("androidx.media3:media3-ui:1.9.0")
+    // Single dependency covers exoplayer + ui + session
     implementation("androidx.media3:media3-session:1.9.0")
 
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
