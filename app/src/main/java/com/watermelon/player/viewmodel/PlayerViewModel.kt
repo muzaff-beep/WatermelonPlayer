@@ -13,39 +13,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * PlayerViewModel - Hilt ViewModel for PlayerScreen
- * 
- * Responsibilities:
- * - Expose UI state via StateFlow
- * - Control playback actions
- * - Manage per-video fit mode (with persistence)
- * - Toggle subtitles, VHS effect, quick menu
- * 
- * Note: Does NOT release player — player is app-wide singleton managed by PlaybackService
- */
-
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val watermelonPlayer: WatermelonPlayer,
-    @ApplicationContext private val context: Context  // ← Injected context
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     init {
-        // Observe player events to update UI state
         observePlayerState()
-
-        // Load saved fit mode for current media (if any)
-        viewModelScope.launch {
-            watermelonPlayer.currentMediaPath?.let { path ->
-                val savedMode = FitModeManager.getModeForVideo(context, path)
-                watermelonPlayer.exoPlayer.setResizeMode(savedMode)
-                updateFitModeInState(savedMode)
-            }
-        }
+        loadInitialFitMode()
     }
 
     private fun observePlayerState() {
@@ -56,8 +35,17 @@ class PlayerViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            watermelonPlayer.currentMediaPath?.let { path ->
-                _uiState.value = _uiState.value.copy(currentPath = path)
+            watermelonPlayer.currentMediaPath.collect { path ->
+                _uiState.value = _uiState.value.copy(currentPath = path ?: "")
+            }
+        }
+    }
+
+    private fun loadInitialFitMode() {
+        viewModelScope.launch {
+            watermelonPlayer.currentMediaPath.value?.let { path ->
+                val mode = FitModeManager.getModeForVideo(context, path)
+                watermelonPlayer.exoPlayer.setResizeMode(mode)
             }
         }
     }
@@ -73,7 +61,6 @@ class PlayerViewModel @Inject constructor(
     fun toggleSubtitles() {
         val new = !_uiState.value.subtitlesEnabled
         _uiState.value = _uiState.value.copy(subtitlesEnabled = new)
-        // TODO: Apply to ExoPlayer track selection
     }
 
     fun toggleVhsEffect(enabled: Boolean) {
@@ -91,21 +78,10 @@ class PlayerViewModel @Inject constructor(
 
     fun setFitMode(mode: Int) {
         watermelonPlayer.exoPlayer.setResizeMode(mode)
-        updateFitModeInState(mode)
-
-        // Save to persistence
-        watermelonPlayer.currentMediaPath?.let { path ->
+        watermelonPlayer.currentMediaPath.value?.let { path ->
             FitModeManager.saveModeForVideo(context, path, mode)
         }
     }
-
-    private fun updateFitModeInState(mode: Int) {
-        // If you want to expose current fit mode in UI state
-        // _uiState.value = _uiState.value.copy(currentFitMode = mode)
-    }
-
-    // DO NOT release player here — it's managed by PlaybackService (app-wide)
-    // override fun onCleared() { ... } removed intentionally
 }
 
 data class PlayerUiState(
@@ -114,5 +90,4 @@ data class PlayerUiState(
     val vhsEnabled: Boolean = false,
     val quickMenuVisible: Boolean = false,
     val currentPath: String = ""
-    // val currentFitMode: Int = AspectRatioFrameLayout.RESIZE_MODE_FIT // optional
 )
