@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.parcelize")  // ← Correct ID, no version here
+    id("org.jetbrains.kotlin.plugin.parcelize")
 }
 
 android {
@@ -48,8 +48,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    // ← REPLACE THE OLD kotlinOptions BLOCK WITH THIS NEW ONE
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
 
     buildFeatures {
@@ -57,7 +60,7 @@ android {
         buildConfig = true
     }
 
-    // Remove composeOptions block entirely – no longer needed in Kotlin 2.0+
+    // composeOptions block already removed in previous fix
 }
 
 dependencies {
