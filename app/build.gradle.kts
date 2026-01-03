@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.parcelize")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("dagger.hilt.android.plugin")      // ← For WatermelonApp @HiltAndroidApp
+    id("kotlin-kapt")                     // ← Required for Hilt processing
 }
 
 android {
@@ -23,7 +25,7 @@ android {
 
         buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
         buildConfigField("String", "BUILD_TIMESTAMP", "\"${System.currentTimeMillis()}\"")
-    }  // ← Closed here
+    }
 
     flavorDimensions += "market"
 
@@ -66,6 +68,11 @@ android {
         compose = true
         buildConfig = true
     }
+
+    // Optional: Explicit Kotlin version for stability
+    kotlin {
+        jvmToolchain(17)
+    }
 }
 
 dependencies {
@@ -74,13 +81,25 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
 
     implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2025.12.01"))  // Latest patch
+    implementation(platform("androidx.compose:compose-bom:2025.12.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    // Single dependency covers exoplayer + ui + session
+    // Media3 - session pulls in everything needed
     implementation("androidx.media3:media3-session:1.9.0")
+
+    // Coil3 for thumbnails and low-RAM config
+    implementation("io.coil-kt.coil3:coil:3.0.0")
+    implementation("io.coil-kt.coil3:coil-compose:3.0.0")
+
+    // Hilt DI - critical for WatermelonApp
+    implementation("com.google.dagger:hilt-android:2.51")
+    kapt("com.google.dagger:hilt-compiler:2.51")
+
+    // Hilt WorkManager
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
 
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
