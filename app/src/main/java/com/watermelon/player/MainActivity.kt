@@ -7,7 +7,18 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -20,23 +31,19 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.watermelon.player.config.EditionManager
 import com.watermelon.player.config.LocaleManager
-import com.watermelon.player.databinding.ActivityMainBinding
+import com.watermelon.player.ui.theme.WatermelonPlayerTheme
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
-    private lateinit var binding: ActivityMainBinding
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var controller: MediaController? = null
-    private var isSeeking = false
+    private var isSeeking by mutableStateOf(false)
 
     private val notificationPermissionCode = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         // Initialize edition and locale
         EditionManager.initialize(this)
@@ -49,16 +56,43 @@ class MainActivity : AppCompatActivity() {
         // Connect to PlaybackService
         connectToPlaybackService()
 
-        // Setup UI (buttons will be enabled once controller is ready)
-        setupUI()
+        setContent {
+            WatermelonPlayerTheme {
+                val isPlaying by remember {
+                    derivedStateOf {
+                        controller?.isPlaying == true
+                    }
+                }
 
-        // Apply RTL if needed
-        if (useRtl) {
-            applyRtlLayout()
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Full-screen idle background when nothing is playing
+                    if (!isPlaying && (controller?.playbackState == Player.STATE_IDLE || controller?.playbackState == Player.STATE_ENDED)) {
+                        Image(
+                            painter = painterResource(id = R.drawable.background_tv_idle),
+                            contentDescription = "WatermelonPlayer idle background",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        // Optional dark overlay for better text visibility
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.5f))
+                        )
+                    }
+
+                    // Your main player UI goes here
+                    // Replace this with your actual Compose UI (buttons, seekbars, etc.)
+                    PlayerUI(
+                        controller = controller,
+                        isSeeking = isSeeking,
+                        onSeekingChange = { isSeeking = it },
+                        isPersian = isPersian,
+                        useRtl = useRtl
+                    )
+                }
+            }
         }
-
-        // Display edition info
-        displayEditionInfo(isPersian, useRtl)
     }
 
     private fun requestNotificationPermission() {
@@ -82,175 +116,10 @@ class MainActivity : AppCompatActivity() {
         controllerFuture?.addListener({
             controller = controllerFuture?.get()
             if (controller != null) {
-                setupControllerListeners()
-                updateUIFromController()
-            } else {
-                Toast.makeText(this, "Failed to connect to playback service", Toast.LENGTH_LONG).show()
+                // Force UI update
+                (this as ComponentActivity).setContent { } // Trigger recomposition
             }
         }, MoreExecutors.directExecutor())
-    }
-
-    private fun setupUI() {
-        binding.btnPlayPause.setOnClickListener { controller?.playWhenReady = !(controller?.playWhenReady ?: false) }
-        binding.btnStop.setOnClickListener { controller?.stop() }
-        binding.btnNext.setOnClickListener { controller?.seekToNext() }
-        binding.btnPrev.setOnClickListener { controller?.seekToPrevious() }
-        binding.btnForward.setOnClickListener { controller?.seekForward() }
-        binding.btnBackward.setOnClickListener { controller?.seekBackward() }
-        binding.btnShuffle.setOnClickListener { controller?.shuffleModeEnabled = !(controller?.shuffleModeEnabled ?: false) }
-
-        binding.btnRepeat.setOnClickListener {
-            val current = controller?.repeatMode ?: Player.REPEAT_MODE_OFF
-            val next = when (current) {
-                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
-                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                else -> Player.REPEAT_MODE_OFF
-            }
-            controller?.repeatMode = next
-        }
-
-        binding.seekbarVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    controller?.volume = progress / 100f
-                    binding.tvVolume.text = "${progress}%"
-                }
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-
-        binding.seekbarPlayer.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser && controller?.duration ?: 0 > 0) {
-                    val position = (progress * (controller?.duration ?: 0)) / 1000
-                    binding.tvCurrentTime.text = WatermelonPlayer.formatDuration(position)
-                }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) { isSeeking = true }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                isSeeking = false
-                controller?.let { ctrl ->
-                    val duration = ctrl.duration
-                    if (duration > 0) {
-                        val newPosition = (seekBar?.progress ?: 0).toLong() * duration / 1000
-                        ctrl.seekTo(newPosition)
-                    }
-                }
-            }
-        })
-    }
-
-    private fun setupControllerListeners() {
-        controller?.addListener(object : Player.Listener {
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                binding.btnPlayPause.text = if (playWhenReady) "⏸️" else "▶️"
-                binding.tvStatus.text = if (playWhenReady) "Playing" else "Paused"
-            }
-
-            override fun onPlaybackStateChanged(state: Int) {
-                when (state) {
-                    Player.STATE_BUFFERING -> binding.tvStatus.text = "Buffering..."
-                    Player.STATE_ENDED -> binding.tvStatus.text = "Ended"
-                    Player.STATE_READY -> binding.tvStatus.text = if (controller?.playWhenReady == true) "Playing" else "Ready"
-                }
-            }
-
-            override fun onPlayerError(error: PlaybackException) {
-                binding.tvStatus.text = "Error"
-                Toast.makeText(this@MainActivity, "Playback error: ${error.message}", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                updateProgress()
-            }
-
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                updateProgress()
-            }
-        })
-
-        // Periodic position updates
-        lifecycleScope.launch {
-            while (true) {
-                updateProgress()
-                kotlinx.coroutines.delay(500)
-            }
-        }
-    }
-
-    private fun updateProgress() {
-        controller?.let { ctrl ->
-            val duration = ctrl.duration
-            val position = ctrl.currentPosition
-
-            if (duration > 0 && !isSeeking) {
-                val progress = (position * 1000 / duration).coerceIn(0, 1000).toInt()
-                binding.seekbarPlayer.progress = progress
-                binding.tvCurrentTime.text = WatermelonPlayer.formatDuration(position)
-            }
-
-            binding.tvTotalTime.text = WatermelonPlayer.formatDuration(duration)
-        }
-    }
-
-    private fun updateUIFromController() {
-        controller?.let { ctrl ->
-            // Volume
-            val volumeProgress = (ctrl.volume * 100).toInt()
-            binding.seekbarVolume.progress = volumeProgress
-            binding.tvVolume.text = "${volumeProgress}%"
-
-            // Shuffle
-            binding.btnShuffle.text = if (ctrl.shuffleModeEnabled) "🔀 ON" else "🔀 OFF"
-
-            // Repeat
-            val repeatText = when (ctrl.repeatMode) {
-                Player.REPEAT_MODE_OFF -> "🔁 OFF"
-                Player.REPEAT_MODE_ONE -> "🔂 ONE"
-                Player.REPEAT_MODE_ALL -> "🔁 ALL"
-                else -> "🔁"
-            }
-            binding.btnRepeat.text = repeatText
-
-            // Initial play/pause state
-            binding.btnPlayPause.text = if (ctrl.playWhenReady) "⏸️" else "▶️"
-        }
-    }
-
-    private fun applyRtlLayout() {
-        binding.root.layoutDirection = android.view.View.LAYOUT_DIRECTION_RTL
-        binding.tvTitle.textDirection = android.view.View.TEXT_DIRECTION_RTL
-        binding.tvStatus.textDirection = android.view.View.TEXT_DIRECTION_RTL
-    }
-
-    private fun displayEditionInfo(isPersian: Boolean, useRtl: Boolean) {
-        val edition = EditionManager.getCurrentEdition()
-        val features = EditionManager.getFeatures()
-
-        val info = """
-            📱 Watermelon Player
-            
-            Edition: ${edition.displayName}
-            
-            Features:
-            • Internet Required: ${features.requiresInternet}
-            • Persian Support: ${features.supportsPersian}
-            • Current Locale: ${if (isPersian) "Persian (فارسی)" else "English"}
-            • RTL Layout: ${if (useRtl) "Enabled ←" else "Disabled →"}
-            • Payment Methods: ${features.paymentMethods.joinToString()}
-            
-            MediaSessionService: Active ✓
-            Notification: Auto-managed
-        """.trimIndent()
-
-        binding.tvTitle.text = info
     }
 
     override fun onStop() {
@@ -259,9 +128,29 @@ class MainActivity : AppCompatActivity() {
         controllerFuture = null
         controller = null
     }
+}
 
-    override fun onDestroy() {
-        super.onDestroy()
-        // Player is owned by PlaybackService — no release needed here
+// Placeholder for your actual player UI
+@Composable
+fun PlayerUI(
+    controller: MediaController?,
+    isSeeking: Boolean,
+    onSeekingChange: (Boolean) -> Unit,
+    isPersian: Boolean,
+    useRtl: Boolean
+) {
+    // Implement your buttons, seekbars, title display here
+    // Use controller?.play(), controller?.pause(), etc.
+    // This is where your current binding-based UI logic should be migrated to Compose
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        // Temporary placeholder
+        androidx.compose.material3.Text(
+            text = if (controller?.isPlaying == true) "Now Playing..." else "Select media to play",
+            color = Color.White,
+            style = MaterialTheme.typography.headlineMedium
+        )
     }
 }
