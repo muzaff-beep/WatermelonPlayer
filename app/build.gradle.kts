@@ -36,11 +36,11 @@ android {
     }
 
     buildFeatures {
-        compose = true  // Set false if you don't use Compose
+        compose = true  // Set to false if you don't use Compose
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"  // Compatible with Kotlin 2.3
+        kotlinCompilerExtensionVersion = "1.5.14"  // Compatible with Kotlin 2.3.0
     }
 }
 
@@ -57,7 +57,7 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    // Hilt (Dagger)
+    // Hilt
     val hilt_version = "2.51"
     implementation("com.google.dagger:hilt-android:$hilt_version")
     ksp("com.google.dagger:hilt-compiler:$hilt_version")
@@ -68,13 +68,13 @@ dependencies {
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 
-    // Media3 ExoPlayer (latest stable ~1.4.x-1.9.x range)
-    val media3_version = "1.4.1"
+    // Media3 ExoPlayer
+    val media3_version = "1.6.0"
     implementation("androidx.media3:media3-exoplayer:$media3_version")
     implementation("androidx.media3:media3-exoplayer-hls:$media3_version")
     implementation("androidx.media3:media3-ui:$media3_version")
 
-    // Coil (latest stable 2.x series)
+    // Coil
     val coil_version = "2.7.0"
     implementation("io.coil-kt:coil-compose:$coil_version")
 
@@ -83,8 +83,8 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
-    // Jetpack Compose (December 2025 stable release)
-    val compose_bom = "2025.12.01"
+    // Jetpack Compose
+    val compose_bom = "2025.12.01"  // Latest stable December 2025
     implementation(platform("androidx.compose:compose-bom:$compose_bom"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
