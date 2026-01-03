@@ -6,5 +6,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VaultViewModel @Inject constructor() : ViewModel() {
-    // TODO: Vault logic - encrypted media, PIN, etc.
+    // Vault logic - encrypted media, PIN, etc.
+    // Fully preserved for future implementation
 }
