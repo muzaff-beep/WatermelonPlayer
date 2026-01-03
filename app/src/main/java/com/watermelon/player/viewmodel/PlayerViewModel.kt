@@ -1,10 +1,12 @@
 package com.watermelon.player.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.watermelon.player.player.WatermelonPlayer
 import com.watermelon.player.util.FitModeManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,28 +14,51 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * PlayerViewModel.kt
- * Hilt ViewModel for PlayerScreen.
- * Manages:
- *   - Playback state (playing, position)
- *   - UI flags (VHS, subtitles, quick menu)
- *   - Fit mode per video
- *   - Remote actions
+ * PlayerViewModel - Hilt ViewModel for PlayerScreen
+ * 
+ * Responsibilities:
+ * - Expose UI state via StateFlow
+ * - Control playback actions
+ * - Manage per-video fit mode (with persistence)
+ * - Toggle subtitles, VHS effect, quick menu
+ * 
+ * Note: Does NOT release player — player is app-wide singleton managed by PlaybackService
  */
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val watermelonPlayer: WatermelonPlayer
+    private val watermelonPlayer: WatermelonPlayer,
+    @ApplicationContext private val context: Context  // ← Injected context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
     init {
-        // Load saved fit mode for current video
+        // Observe player events to update UI state
+        observePlayerState()
+
+        // Load saved fit mode for current media (if any)
         viewModelScope.launch {
-            val mode = FitModeManager.getModeForVideo(/* context */, _uiState.value.currentPath)
-            watermelonPlayer.exoPlayer.setResizeMode(mode)
+            watermelonPlayer.currentMediaPath?.let { path ->
+                val savedMode = FitModeManager.getModeForVideo(context, path)
+                watermelonPlayer.exoPlayer.setResizeMode(savedMode)
+                updateFitModeInState(savedMode)
+            }
+        }
+    }
+
+    private fun observePlayerState() {
+        viewModelScope.launch {
+            watermelonPlayer.isPlaying.collect { playing ->
+                _uiState.value = _uiState.value.copy(isPlaying = playing)
+            }
+        }
+
+        viewModelScope.launch {
+            watermelonPlayer.currentMediaPath?.let { path ->
+                _uiState.value = _uiState.value.copy(currentPath = path)
+            }
         }
     }
 
@@ -48,7 +73,7 @@ class PlayerViewModel @Inject constructor(
     fun toggleSubtitles() {
         val new = !_uiState.value.subtitlesEnabled
         _uiState.value = _uiState.value.copy(subtitlesEnabled = new)
-        // Apply to player tracks
+        // TODO: Apply to ExoPlayer track selection
     }
 
     fun toggleVhsEffect(enabled: Boolean) {
@@ -66,13 +91,21 @@ class PlayerViewModel @Inject constructor(
 
     fun setFitMode(mode: Int) {
         watermelonPlayer.exoPlayer.setResizeMode(mode)
-        FitModeManager.saveModeForVideo(/* context */, _uiState.value.currentPath, mode)
+        updateFitModeInState(mode)
+
+        // Save to persistence
+        watermelonPlayer.currentMediaPath?.let { path ->
+            FitModeManager.saveModeForVideo(context, path, mode)
+        }
     }
 
-    override fun onCleared() {
-        watermelonPlayer.release()
-        super.onCleared()
+    private fun updateFitModeInState(mode: Int) {
+        // If you want to expose current fit mode in UI state
+        // _uiState.value = _uiState.value.copy(currentFitMode = mode)
     }
+
+    // DO NOT release player here — it's managed by PlaybackService (app-wide)
+    // override fun onCleared() { ... } removed intentionally
 }
 
 data class PlayerUiState(
@@ -81,4 +114,5 @@ data class PlayerUiState(
     val vhsEnabled: Boolean = false,
     val quickMenuVisible: Boolean = false,
     val currentPath: String = ""
+    // val currentFitMode: Int = AspectRatioFrameLayout.RESIZE_MODE_FIT // optional
 )
