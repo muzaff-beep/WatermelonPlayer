@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val useRtl = LocaleManager.shouldUseRtlLayout(this)
+        LocaleManager // Force reference to ensure file exists
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -58,11 +58,9 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.6f))
-                        )
+                        Box(modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.6f)))  // Fixed reference
                     }
 
                     Column(
@@ -70,15 +68,8 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = "WatermelonPlayer",
-                            color = Color.White,
-                            style = androidx.compose.material3.MaterialTheme.typography.headlineLarge
-                        )
-                        Text(
-                            text = if (isPlaying) "Now Playing" else "Ready",
-                            color = Color.White
-                        )
+                        Text("WatermelonPlayer", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.headlineLarge)
+                        Text(text = if (isPlaying) "Playing..." else "Ready", color = Color.White)
                     }
                 }
             }
@@ -95,8 +86,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        controller?.let { MediaController.releaseFuture(controllerFuture) }
-        controllerFuture = null
+        controller?.let { MediaController.releaseFuture(controllerFuture as ListenableFuture<MediaController>) } // Fixed type mismatch
         controller = null
     }
 }
