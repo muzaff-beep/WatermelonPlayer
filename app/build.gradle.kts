@@ -1,9 +1,10 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    // Remove KSP — not needed for Phase 1/2
 }
+
 
 android {
     namespace = "com.watermelon.player"
