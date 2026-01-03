@@ -1,7 +1,7 @@
 pluginManagement {
     repositories {
-        google()
-        mavenCentral() // Critical for Hilt plugin
+        google()               // Required for KSP and other Google plugins
+        mavenCentral()
         gradlePluginPortal()
     }
 }
@@ -11,6 +11,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
