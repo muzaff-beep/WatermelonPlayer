@@ -36,20 +36,20 @@ android {
     }
 
     buildFeatures {
-        compose = true  // Change to false if not using Compose
+        compose = true  // Set false if you don't use Compose
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
+        kotlinCompilerExtensionVersion = "1.5.14"  // Compatible with Kotlin 2.3
     }
 }
 
 dependencies {
-    // Core
+    // Core AndroidX
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
 
-    // Lifecycle & ViewModel
+    // Lifecycle
     val lifecycle_version = "2.8.6"
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
@@ -57,24 +57,24 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    // Hilt
+    // Hilt (Dagger)
     val hilt_version = "2.51"
     implementation("com.google.dagger:hilt-android:$hilt_version")
     ksp("com.google.dagger:hilt-compiler:$hilt_version")
 
-    // Hilt WorkManager
+    // Hilt + WorkManager
     val work_version = "2.11.0"
     implementation("androidx.work:work-runtime-ktx:$work_version")
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 
-    // Media3 (ExoPlayer)
-    val media3_version = "1.4.1"  // Latest stable as of early 2026
+    // Media3 ExoPlayer (latest stable ~1.4.x-1.9.x range)
+    val media3_version = "1.4.1"
     implementation("androidx.media3:media3-exoplayer:$media3_version")
     implementation("androidx.media3:media3-exoplayer-hls:$media3_version")
     implementation("androidx.media3:media3-ui:$media3_version")
 
-    // Coil
+    // Coil (latest stable 2.x series)
     val coil_version = "2.7.0"
     implementation("io.coil-kt:coil-compose:$coil_version")
 
@@ -83,8 +83,8 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
-    // Compose (if enabled)
-    val compose_bom = "2024.10.00"
+    // Jetpack Compose (December 2025 stable release)
+    val compose_bom = "2025.12.01"
     implementation(platform("androidx.compose:compose-bom:$compose_bom"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
