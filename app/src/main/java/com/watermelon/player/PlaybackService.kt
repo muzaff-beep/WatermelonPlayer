@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import androidx.media3.session.MediaStyleNotificationHelper
 
 class PlaybackService : MediaSessionService() {
 
@@ -15,28 +14,20 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        // Create the ExoPlayer instance
         player = ExoPlayer.Builder(this).build()
 
-        // Create the MediaSession with the player
-        mediaSession = MediaSession.Builder(this, player)
-            .setSessionActivity(createSessionActivityPendingIntent())
-            .build()
-
-        // Optional: Customize notification appearance (colors, actions, etc.)
-        // You can leave default — it includes progress bar, play/pause, skip, title, artwork
-    }
-
-    private fun createSessionActivityPendingIntent(): PendingIntent? {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        return PendingIntent.getActivity(
+        val sessionActivityPendingIntent = PendingIntent.getActivity(
             this,
             0,
-            intent,
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
+        mediaSession = MediaSession.Builder(this, player)
+            .setSessionActivity(sessionActivityPendingIntent)
+            .build()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
@@ -44,8 +35,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // When user swipes app away — stop playback and service
-        player.pause()
+        player.stop()
         stopSelf()
     }
 
