@@ -5,6 +5,7 @@
     android:orientation="vertical"
     android:background="#CC000000">
 
+    <!-- Title -->
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
@@ -12,8 +13,17 @@
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:padding="16dp"
-        android:text="Song Title" />  <!-- Placeholder — will be set dynamically -->
+        android:text="Song Title" />  <!-- Will be updated dynamically -->
 
+    <!-- Progress Bar (DefaultTimeBar from Media3) -->
+    <androidx.media3.ui.DefaultTimeBar
+        android:id="@+id/exo_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Playback Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
