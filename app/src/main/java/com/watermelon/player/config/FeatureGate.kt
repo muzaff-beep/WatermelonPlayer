@@ -1,61 +1,79 @@
 package com.watermelon.player.config
 
-import com.watermelon.player.config.EditionManager.Edition
+import com.watermelon.player.config.EditionManager.PaymentMethod
 
 /**
- * FeatureGate provides runtime checks for edition-specific features.
- * Use this to conditionally enable/disable code paths based on current edition.
+ * FeatureGate.kt
+ * Purpose: Central feature-flagging based on current edition.
+ * 
+ * All feature checks go through here — single source of truth.
+ * Used across ViewModels, UI, billing, vault, etc.
+ * Iran-first: Restricts online-only or Google-dependent features.
  */
+
 object FeatureGate {
 
-    /**
-     * Checks if internet-required features are allowed.
-     */
-    fun isInternetEnabled(): Boolean {
-        return EditionManager.getCurrentEdition() is Edition.Global
-    }
+    private val currentEdition = EditionManager.getCurrentEdition()
+    private val features = EditionManager.getFeatures()
 
     /**
-     * Checks if smart tagging with online ML is available.
+     * Online features (streaming, cloud sync, etc.)
+     * Disabled in Iran edition
      */
-    fun isSmartTaggingOnlineEnabled(): Boolean {
-        return EditionManager.getFeatures().smartTaggingOnline
-    }
+    val isOnlineFeaturesEnabled: Boolean
+        get() = !currentEdition.isIranEdition && features.requiresInternet
 
     /**
-     * Checks if subtitle auto-fetch is allowed.
+     * Media vault (encrypted storage)
      */
-    fun isSubtitleAutoFetchEnabled(): Boolean {
-        return EditionManager.getFeatures().subtitleAutoFetch
-    }
+    val isVaultEnabled: Boolean
+        get() = features.supportsVault
 
     /**
-     * Checks if network streaming (SMB/DLNA) is enabled.
+     * Subtitle download or online sources
      */
-    fun isNetworkStreamingEnabled(): Boolean {
-        return EditionManager.getFeatures().networkStreaming
-    }
+    val isOnlineSubtitlesEnabled: Boolean
+        get() = isOnlineFeaturesEnabled
 
     /**
-     * Checks if Whisper module is available.
+     * Analytics / crash reporting
      */
-    fun isWhisperModuleEnabled(): Boolean {
-        return EditionManager.getFeatures().whisperModuleAvailable
-    }
+    val isAnalyticsEnabled: Boolean
+        get() = !currentEdition.isIranEdition
 
     /**
-     * Checks if banner ads should be shown (e.g., in trial mode).
+     * Google Play billing
      */
-    fun showBannerAds(): Boolean {
-        return EditionManager.getFeatures().showBannerAds
-    }
+    val isGoogleBillingEnabled: Boolean
+        get() = !currentEdition.isIranEdition
 
     /**
-     * Gets the list of supported payment methods.
+     * Iranian payment gateways (Cafe Bazaar, MyKet)
      */
-    fun getPaymentMethods(): List<EditionManager.PaymentMethod> {
-        return EditionManager.getFeatures().paymentMethods
-    }
+    val isIranianBillingEnabled: Boolean
+        get() = currentEdition.isIranEdition
 
-    // Add more gates as needed for other features
+    /**
+     * Supported payment methods for current edition
+     */
+    val supportedPaymentMethods: List<PaymentMethod>
+        get() = features.paymentMethods
+
+    /**
+     * Persian/RTL language support
+     */
+    val isPersianSupported: Boolean
+        get() = features.supportsPersian
+
+    /**
+     * Advanced equalizer or audio effects
+     */
+    val isAdvancedAudioEnabled: Boolean
+        get() = true  // Available in both editions
+
+    /**
+     * Casting (Chromecast, etc.) — disabled in Iran due to sanctions
+     */
+    val isCastingEnabled: Boolean
+        get() = !currentEdition.isIranEdition
 }
