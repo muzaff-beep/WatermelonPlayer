@@ -3,10 +3,9 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.parcelize")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("dagger.hilt.android.plugin")      // ← For WatermelonApp @HiltAndroidApp
-    id("kotlin-kapt")                     // ← Required for Hilt processing
+    id("com.google.dagger.hilt.android") version "2.51"  // ← Fixed with version
+    id("kotlin-kapt")
 }
-
 android {
     namespace = "com.watermelon.player"
     compileSdk = 35
