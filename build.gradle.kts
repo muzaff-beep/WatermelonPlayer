@@ -1,9 +1,9 @@
-// Top-level build file - common config for all modules
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     id("com.android.application") version "8.5.0" apply false
     id("org.jetbrains.kotlin.android") version "1.9.24" apply false
     id("com.google.devtools.ksp") version "1.9.24-1.0.20" apply false
-    id("kotlin-parcelize") apply false
+    id("kotlin-parcelize") version "1.9.24" apply false  // FIXED: Added version
 }
 
 tasks.register("clean", Delete::class) {
