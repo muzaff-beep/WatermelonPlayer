@@ -2,6 +2,7 @@
 package com.watermelon.player
 
 import android.app.Application
+import android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.watermelon.player.config.EditionManager
@@ -25,9 +26,10 @@ class WatermelonApp : Application(), Configuration.Provider {
         super.onCreate()
         instance = this
 
-        if (BuildConfig.DEBUG.not() && TamperDetector.isTampered(this)) { // Fixed RELEASE reference
+        // Only perform tamper check in release builds
+        if (!BuildConfig.DEBUG && TamperDetector.isTampered(this)) {
             TamperDetector.handleTamper()
-            return
+            return  // Stops further initialization if tampered
         }
 
         EditionManager.initialize(this)
