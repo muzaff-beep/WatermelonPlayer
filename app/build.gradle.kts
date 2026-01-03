@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.watermelon.player"
-        minSdk = 23  // FIXED: Increased to 23 for security-crypto compatibility
+        minSdk = 23  // From previous fix (security-crypto requirement)
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -104,6 +104,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
 
+    // ConstraintLayout - FIXED: Added for ConstraintLayout attributes in XML
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+
     // Compose – Stable, compatible with AGP 8.5.0
     implementation(platform("androidx.compose:compose-bom:2024.02.00"))
     implementation("androidx.compose.ui:ui")
@@ -129,7 +132,7 @@ dependencies {
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
-    // Security (compatible with minSdk 23)
+    // Security
     implementation("androidx.security:security-crypto:1.0.0")
 
     // WorkManager
