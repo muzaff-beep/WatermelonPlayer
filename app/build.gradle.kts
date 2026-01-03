@@ -25,6 +25,23 @@ android {
         buildConfigField("String", "BUILD_TIMESTAMP", "\"${System.currentTimeMillis()}\"")
     }
 
+    // Product flavors for different markets (required for assembleIranRelease)
+    flavorDimensions += "market"
+
+    productFlavors {
+        create("google") {
+            dimension = "market"
+            // Optional: applicationIdSuffix = ".google"
+            // Add Google Play specific config here if needed
+        }
+
+        create("iran") {
+            dimension = "market"
+            // Optional: applicationIdSuffix = ".iran"
+            // Add Iran-specific config (e.g., alternative APIs, mirrors) here
+        }
+    }
+
     signingConfigs {
         create("release") {
             storeFile = file("watermelon.jks")
@@ -41,6 +58,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -58,21 +76,4 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2025.12.00"))  // ← Updated to latest stable (Dec 2025)
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-
-    implementation("androidx.media3:media3-exoplayer:1.3.1")
-    implementation("androidx.media3:media3-ui:1.3.1")
-    implementation("androidx.media3:media3-session:1.3.1")
-
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
-
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-}
+    implementation("com
