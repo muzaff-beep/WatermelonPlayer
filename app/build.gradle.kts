@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.parcelize")  // ← Correct ID, no version here
 }
 
 android {
@@ -57,9 +57,7 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
+    // Remove composeOptions block entirely – no longer needed in Kotlin 2.0+
 }
 
 dependencies {
