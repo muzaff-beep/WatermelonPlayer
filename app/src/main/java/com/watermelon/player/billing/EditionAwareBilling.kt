@@ -6,7 +6,6 @@ import com.watermelon.player.config.EditionManager
 class EditionAwareBilling(private val context: Context) {
 
     private val iranianProcessor = IranianPaymentProcessor(context)  // Assume it needs context
-    private val googlePlayBilling = GooglePlayBilling(context)
 
     /**
      * Starts purchase flow based on current edition
@@ -20,7 +19,7 @@ class EditionAwareBilling(private val context: Context) {
                 iranianProcessor.startPurchaseFlow(onSuccess, onFail)
             }
             else -> {
-                googlePlayBilling.startPurchaseFlow(onSuccess, onFail)
+                , onFail)
             }
         }
     }
@@ -52,7 +51,6 @@ class EditionAwareBilling(private val context: Context) {
      * Clean up billing clients (call from Activity.onDestroy)
      */
     fun dispose() {
-        googlePlayBilling.dispose()
         iranianProcessor.dispose()
     }
 }
