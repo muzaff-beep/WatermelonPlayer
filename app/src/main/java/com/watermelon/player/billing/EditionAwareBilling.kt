@@ -10,11 +10,11 @@ class EditionAwareBilling(private val context: Context) {
     private val googlePlayBilling = GooglePlayBilling(context)
 
     fun startPurchase(onSuccess: () -> Unit, onFail: (String) -> Unit) {
-        if (EditionManager.isIranEdition()) {
-            iranianProcessor.startIranianPurchase(context, onSuccess, onFail)
-        } else {
-            googlePlayBilling.startGlobalPurchase(onSuccess, onFail)
-        }
+if (EditionManager.getCurrentEdition().isIranEdition) { // Fixed
+    IranianPaymentProcessor() // Fixed - call constructor
+}
+
+        
     }
 
     fun verifyPurchase(): Boolean {
