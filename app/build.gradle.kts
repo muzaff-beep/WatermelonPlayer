@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.watermelon.player"
-        minSdk = 23  // From previous fix (security-crypto requirement)
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -87,7 +87,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+        kotlinCompilerExtensionVersion = "1.5.14"  // FIXED: Matches Kotlin 1.9.24
     }
 
     packaging {
@@ -104,10 +104,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
 
-    // ConstraintLayout - FIXED: Added for ConstraintLayout attributes in XML
+    // ConstraintLayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // Compose – Stable, compatible with AGP 8.5.0
+    // Compose – Stable & compatible
     implementation(platform("androidx.compose:compose-bom:2024.02.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
