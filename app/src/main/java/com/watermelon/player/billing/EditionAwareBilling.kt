@@ -2,31 +2,57 @@ package com.watermelon.player.billing
 
 import android.content.Context
 import com.watermelon.player.config.EditionManager
-import com.watermelon.player.billing.IranianPaymentProcessor
-import com.watermelon.player.billing.GooglePlayBilling
 
 class EditionAwareBilling(private val context: Context) {
-    private val iranianProcessor = IranianPaymentProcessor()
+
+    private val iranianProcessor = IranianPaymentProcessor(context)  // Assume it needs context
     private val googlePlayBilling = GooglePlayBilling(context)
 
-    fun startPurchase(onSuccess: () -> Unit, onFail: (String) -> Unit) {
-if (EditionManager.getCurrentEdition().isIranEdition) { // Fixed
-    IranianPaymentProcessor() // Fixed - call constructor
-}
-
-        
+    /**
+     * Starts purchase flow based on current edition
+     */
+    fun startPurchase(
+        onSuccess: () -> Unit,
+        onFail: (String) -> Unit
+    ) {
+        when {
+            EditionManager.isIranEdition -> {
+                iranianProcessor.startPurchaseFlow(onSuccess, onFail)
+            }
+            else -> {
+                googlePlayBilling.startPurchaseFlow(onSuccess, onFail)
+            }
+        }
     }
 
+    /**
+     * Verifies purchase status
+     */
     fun verifyPurchase(): Boolean {
-        return if (EditionManager.isIranEdition()) {
+        return if (EditionManager.isIranEdition) {
             iranianProcessor.verifyIranianPurchase()
         } else {
             googlePlayBilling.verifyGlobalPurchase()
         }
     }
 
+    /**
+     * Called after successful verification from either processor
+     */
     fun unlockFullVersion() {
-        // Shared unlock logic
-        // Set shared preference "unlocked = true"
+        // Shared unlock logic across both editions
+        val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("full_version_unlocked", true).apply()
+        
+        // Optional: Trigger feature refresh
+        // EventBus.post(UnlockEvent())
+    }
+
+    /**
+     * Clean up billing clients (call from Activity.onDestroy)
+     */
+    fun dispose() {
+        googlePlayBilling.dispose()
+        iranianProcessor.dispose()
     }
 }
