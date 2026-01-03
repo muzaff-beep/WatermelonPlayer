@@ -18,6 +18,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
         }
 
         buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
@@ -48,12 +53,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // ← REPLACE THE OLD kotlinOptions BLOCK WITH THIS NEW ONE
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
+
 
     buildFeatures {
         compose = true
