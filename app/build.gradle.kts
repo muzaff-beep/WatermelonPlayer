@@ -30,10 +30,12 @@ android {
     productFlavors {
         create("google") {
             dimension = "market"
+            // Optional: applicationIdSuffix = ".google"
         }
 
         create("iran") {
             dimension = "market"
+            // Optional: applicationIdSuffix = ".iran"
         }
     }
 
@@ -79,9 +81,10 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    implementation("androidx.media3:media3-exoplayer:1.3.1")
-    implementation("androidx.media3:media3-ui:1.3.1")
-    implementation("androidx.media3:media3-session:1.3.1")
+    // Latest stable Media3 as of January 2026
+    implementation("androidx.media3:media3-exoplayer:1.9.0")
+    implementation("androidx.media3:media3-ui:1.9.0")
+    implementation("androidx.media3:media3-session:1.9.0")
 
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
