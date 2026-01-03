@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.watermelon.player"
-        minSdk = 21
+        minSdk = 23  // FIXED: Increased to 23 for security-crypto compatibility
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -87,7 +87,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"  // Stable, matches Kotlin 1.9.24
+        kotlinCompilerExtensionVersion = "1.5.3"
     }
 
     packaging {
@@ -104,7 +104,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
 
-    // Compose - Stable, compatible with AGP 8.5.0
+    // Compose – Stable, compatible with AGP 8.5.0
     implementation(platform("androidx.compose:compose-bom:2024.02.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -129,7 +129,7 @@ dependencies {
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
-    // Security
+    // Security (compatible with minSdk 23)
     implementation("androidx.security:security-crypto:1.0.0")
 
     // WorkManager
