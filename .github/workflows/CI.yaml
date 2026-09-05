@@ -163,6 +163,17 @@ jobs:
           path: '**/build/reports/lint-results*'
           retention-days: 14
 
+      # Upload build logs for debugging failures
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: build-logs
+          path: |
+            *.log
+            **/*.log
+          retention-days: 14
+
   migration-ladder:
     name: Migration-ladder gate (library-storage androidTest)
     runs-on: ubuntu-latest
@@ -250,6 +261,16 @@ jobs:
           path: 'library-storage/build/reports/androidTests/'
           retention-days: 14
 
+      - name: Upload migration test logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: migration-test-logs
+          path: |
+            migrationTest.log
+            **/migrationTest.log
+          retention-days: 14
+
   benchmarks-compile:
     name: Benchmarks module compiles
     runs-on: ubuntu-latest
@@ -281,12 +302,23 @@ jobs:
           echo "=== Gradle version ===" && ./gradlew --version
           echo "=== Android SDK ===" && echo "ANDROID_HOME=$ANDROID_HOME" && ls -la "$ANDROID_HOME/platforms/" 2>/dev/null | head -20 || echo "No platforms dir"
           echo "=== Build tools ===" && ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null | head -10 || echo "No build-tools dir"
+          set -o pipefail
           for i in 1 2 3; do
             ./gradlew :benchmarks:assembleBenchmark --stacktrace --no-daemon \
               -Dorg.gradle.internal.http.connectionTimeout=180000 \
               -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 && break
+              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee benchmarks.log && break
             echo "Retry $i/3 failed, waiting 30s..."
             sleep 30
           done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble benchmarks attempts failed"; exit 1; } || true
+          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble benchmarks attempts failed"; cat benchmarks.log | tail -100; exit 1; } || true
+
+      - name: Upload benchmarks logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: benchmarks-logs
+          path: |
+            benchmarks.log
+            **/benchmarks.log
+          retention-days: 14
