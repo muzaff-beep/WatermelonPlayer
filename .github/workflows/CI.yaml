@@ -67,26 +67,29 @@ jobs:
           echo "=== Gradle version ===" && ./gradlew --version
           echo "=== Android SDK ===" && echo "ANDROID_HOME=$ANDROID_HOME" && ls -la "$ANDROID_HOME/platforms/" 2>/dev/null | head -20 || echo "No platforms dir"
           echo "=== Build tools ===" && ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null | head -10 || echo "No build-tools dir"
+          set -o pipefail
           for i in 1 2 3; do
             ./gradlew build --stacktrace --no-daemon \
               -Dorg.gradle.internal.http.connectionTimeout=180000 \
               -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 && break
+              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee build.log && break
             echo "Retry $i/3 failed, waiting 30s..."
             sleep 30
           done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Build all modules attempts failed"; exit 1; } || true
+          [ ${i:-0} -gt 2 ] && { echo "All 3 Build all modules attempts failed"; cat build.log | tail -100; exit 1; } || true
+
       - name: Run unit tests
         run: |
+          set -o pipefail
           for i in 1 2 3; do
             ./gradlew test --stacktrace --no-daemon \
               -Dorg.gradle.internal.http.connectionTimeout=180000 \
               -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 && break
+              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee test.log && break
             echo "Retry $i/3 failed, waiting 30s..."
             sleep 30
           done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Run unit tests attempts failed"; exit 1; } || true
+          [ ${i:-0} -gt 2 ] && { echo "All 3 Run unit tests attempts failed"; cat test.log | tail -100; exit 1; } || true
       # Debug APK — auto-signed with AGP's default debug keystore, no
       # signingConfig needed. app/build.gradle.kts has no release signing
       # config yet, so only debug is built here.
@@ -194,6 +197,7 @@ jobs:
       - name: Run MigrationTest on emulator
         run: |
           echo "=== Android SDK ===" && echo "ANDROID_HOME=$ANDROID_HOME" && ls -la "$ANDROID_HOME/platforms/" 2>/dev/null | head -20 || echo "No platforms dir"
+          echo "=== Emulator setup ==="
           # Install and start emulator using android-actions/setup-android
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -n 1)"
@@ -205,28 +209,35 @@ jobs:
           echo "no" | avdmanager create avd -n test_avd -k "system-images;android-34;google_apis;x86_64" --device "pixel_6" --force
           
           # Start emulator
+          echo "Starting emulator..."
           emulator -avd test_avd -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot-load -no-snapshot-save &
           EMULATOR_PID=$!
           
           # Wait for emulator to boot
-          for i in $(seq 1 60); do
+          echo "Waiting for emulator to boot..."
+          for i in $(seq 1 120); do
             if adb shell getprop sys.boot_completed 2>/dev/null | grep -q 1; then
-              echo "Emulator booted"
+              echo "Emulator booted after $i checks"
               break
             fi
             sleep 5
           done
           
+          # Verify emulator is ready
+          adb devices
+          adb shell getprop ro.build.version.sdk
+          
           # Run the test
+          set -o pipefail
           for i in 1 2 3; do
             ./gradlew :library-storage:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.storage.db.MigrationTest --stacktrace --no-daemon \
               -Dorg.gradle.internal.http.connectionTimeout=180000 \
               -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 && break
+              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee migrationTest.log && break
             echo "Retry $i/3 failed, waiting 30s..."
             sleep 30
           done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 MigrationTest attempts failed"; exit 1; } || true
+          [ ${i:-0} -gt 2 ] && { echo "All 3 MigrationTest attempts failed"; cat migrationTest.log | tail -100; exit 1; } || true
           
           # Kill emulator
           kill $EMULATOR_PID 2>/dev/null || true
