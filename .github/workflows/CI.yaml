@@ -164,6 +164,9 @@ jobs:
           retention-days: 14
 
       # Upload build logs for debugging failures
+      - name: List build log files
+        if: always()
+        run: ls -la *.log 2>/dev/null || echo "No .log files in root"; find . -name "*.log" 2>/dev/null | head -10
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -252,6 +255,10 @@ jobs:
           
           # Kill emulator
           kill $EMULATOR_PID 2>/dev/null || true
+
+      - name: List migration test files
+        if: always()
+        run: ls -la migrationTest.log 2>/dev/null || echo "migrationTest.log not found in root"; find . -name "migrationTest.log" 2>/dev/null | head -5
 
       - name: Upload instrumented test reports
         if: always()
