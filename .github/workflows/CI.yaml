@@ -245,7 +245,7 @@ jobs:
           adb devices
           adb shell getprop ro.build.version.sdk
           
-          # Run the test
+# Run the test
           set -o pipefail
           for i in 1 2 3; do
             ./gradlew :library-storage:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.storage.db.MigrationTest --stacktrace --no-daemon \
@@ -256,7 +256,9 @@ jobs:
             sleep 30
           done
           cp /tmp/migrationTest.log migrationTest.log 2>/dev/null || true
-          [ ${i:-0} -gt 2 ] && { echo "All 3 MigrationTest attempts failed"; cat migrationTest.log | tail -100; exit 1; } || true
+          ls -la /tmp/migrationTest.log 2>/dev/null || echo "NOT FOUND in /tmp"
+          ls -la migrationTest.log 2>/dev/null || echo "NOT FOUND in root"
+          [ ${i:-0} -gt 2 ] && { echo "All 3 MigrationTest attempts failed"; cat /tmp/migrationTest.log 2>/dev/null | tail -100; exit 1; } || true
           
           # Kill emulator
           kill $EMULATOR_PID 2>/dev/null || true
