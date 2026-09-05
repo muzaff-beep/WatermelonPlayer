@@ -95,15 +95,17 @@ jobs:
       # config yet, so only debug is built here.
       - name: Assemble debug APK
         run: |
+          set -o pipefail
           for i in 1 2 3; do
             ./gradlew :app:assembleDebug --stacktrace --no-daemon \
               -Dorg.gradle.internal.http.connectionTimeout=180000 \
               -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 && break
+              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee /tmp/assembleDebug.log && break
             echo "Retry $i/3 failed, waiting 30s..."
             sleep 30
           done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble debug APK attempts failed"; exit 1; } || true
+          cp /tmp/assembleDebug.log assembleDebug.log 2>/dev/null || true
+          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble debug APK attempts failed"; cat assembleDebug.log | tail -100; exit 1; } || true
       - name: Upload debug APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -126,15 +128,17 @@ jobs:
       # this step will produce a real signed artifact instead.
       - name: Assemble release APK (unsigned in CI -- no signing secrets provisioned yet)
         run: |
+          set -o pipefail
           for i in 1 2 3; do
             ./gradlew :app:assembleRelease --stacktrace --no-daemon \
               -Dorg.gradle.internal.http.connectionTimeout=180000 \
               -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 && break
+              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee /tmp/assembleRelease.log && break
             echo "Retry $i/3 failed, waiting 30s..."
             sleep 30
           done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble release APK attempts failed"; exit 1; } || true
+          cp /tmp/assembleRelease.log assembleRelease.log 2>/dev/null || true
+          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble release APK attempts failed"; cat assembleRelease.log | tail -100; exit 1; } || true
       - name: Upload release APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -247,10 +251,11 @@ jobs:
             ./gradlew :library-storage:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.storage.db.MigrationTest --stacktrace --no-daemon \
               -Dorg.gradle.internal.http.connectionTimeout=180000 \
               -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee migrationTest.log && break
+              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee /tmp/migrationTest.log && break
             echo "Retry $i/3 failed, waiting 30s..."
             sleep 30
           done
+          cp /tmp/migrationTest.log migrationTest.log 2>/dev/null || true
           [ ${i:-0} -gt 2 ] && { echo "All 3 MigrationTest attempts failed"; cat migrationTest.log | tail -100; exit 1; } || true
           
           # Kill emulator
@@ -280,6 +285,7 @@ jobs:
           name: migration-test-logs
           path: |
             migrationTest.log
+            /tmp/migrationTest.log
             **/migrationTest.log
           retention-days: 14
 
