@@ -21,7 +21,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.watermelon.common.model.PlaybackState
-import com.watermelon.common.model.SleepTimerMode
 import com.watermelon.common.model.UserIntent
 import com.watermelon.ui.WatermelonIcons
 import com.watermelon.ui.components.LevelIndicator
@@ -268,13 +267,7 @@ fun PhonePlayerScreen(
         sleepTimerRemainingMs = sleepTimerRemainingMs,
         viewModel = viewModel,
         onSleepTimerDismiss = { uiState.showSleepTimerDialog = false },
-        onSleepTimerSet = { mode, minutes ->
-            val sleepMode = when (mode) {
-                "current_video" -> SleepTimerMode.EndOfVideo
-                "folder" -> SleepTimerMode.EndOfFolder
-                "custom" -> SleepTimerMode.Custom(minutes ?: 15)
-                else -> SleepTimerMode.Custom(15)
-            }
+        onSleepTimerSet = { sleepMode ->
             viewModel.setSleepTimer(sleepMode)
             uiState.showSleepTimerDialog = false
         },

@@ -4,10 +4,9 @@ import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.contentAlignment
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.align
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,7 +20,6 @@ import com.watermelon.common.model.SubtitlePosition
 import com.watermelon.ui.components.SubtitleOverlay
 import com.watermelon.ui.player.VhsEffectController
 import com.watermelon.ui.theme.PlayerColors
-import kotlin.math.roundToPx
 
 @Composable
 fun VideoSurfaceLayer(
@@ -56,15 +54,15 @@ fun VideoSurfaceLayer(
         )
 
         if (vhs.usesLegacyOverlay) {
-            androidx.compose.foundation.Canvas(
+            Canvas(
                 surfaceMod
                     .graphicsLayer {
                         scaleX = state.scale; scaleY = state.scale
                         translationX = state.panOffset.x; translationY = state.panOffset.y
                     }
             ) {
-                val lineSpacingPx = 6.dp.roundToPx()
-                val lineHeightPx = 2.dp.roundToPx()
+                val lineSpacingPx = 6.dp.toPx()
+                val lineHeightPx = 2.dp.toPx()
                 val offsetPx = vhs.scanlinePhase * lineSpacingPx
                 val alpha = vhs.overlayAlpha
                 var y = -lineSpacingPx + offsetPx
@@ -73,14 +71,13 @@ fun VideoSurfaceLayer(
                         drawRect(
                             color = androidx.compose.ui.graphics.Color.White.copy(alpha = alpha),
                             topLeft = androidx.compose.ui.geometry.Offset(0f, y),
-                            size = androidx.compose.ui.geometry.Size(size.width, lineHeightPx.toFloat())
+                            size = androidx.compose.ui.geometry.Size(size.width, lineHeightPx)
                         )
                     }
                     y += lineSpacingPx
                 }
             }
         }
-    }
 
     val effectiveSubtitle = androidx.compose.runtime.remember(subtitleTrack, subtitleOffsetMs) {
         subtitleTrack?.copy(offsetMs = subtitleOffsetMs)
@@ -98,4 +95,5 @@ fun VideoSurfaceLayer(
                 bottom = if (!subAtTop) (if (ui.controlsVisible) 80.dp else 24.dp) else 0.dp
             )
     )
+    }
 }

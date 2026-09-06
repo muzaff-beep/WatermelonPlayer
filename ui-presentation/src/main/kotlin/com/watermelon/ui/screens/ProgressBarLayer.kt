@@ -2,7 +2,8 @@ package com.watermelon.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.align
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -20,6 +21,8 @@ fun ProgressBarLayer(
 ) {
     if (tunerSeekBarEnabled && durationMs > 0) {
         val watchedFraction = (position.toFloat() / durationMs).coerceIn(0f, 1f)
+        // Full-size scope so .align(BottomCenter) resolves, as in the original root Box.
+        Box(Modifier.fillMaxSize()) {
         Canvas(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(3.dp)
         ) {
@@ -28,6 +31,7 @@ fun ProgressBarLayer(
                 color = Color.White,
                 size = Size(size.width * watchedFraction, size.height)
             )
+        }
         }
     }
 }
