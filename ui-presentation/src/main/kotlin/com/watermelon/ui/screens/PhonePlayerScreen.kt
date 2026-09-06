@@ -157,7 +157,11 @@ fun PhonePlayerScreen(
     uiState.screenshotMode = screenshotMode
     uiState.initialBrightness = initialBrightness
 
-    val ui = PlayerUiState()
+    // Keyed on uri: ephemeral chrome resets when switching videos, but must
+    // survive every position-driven recomposition within one video (A1).
+    val ui = remember(uri) {
+        PlayerUiState()
+    }
 
     // Keep local PiP flag in sync with the real system PiP state
     LaunchedEffect(isInPipMode) {
