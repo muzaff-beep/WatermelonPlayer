@@ -52,9 +52,8 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
 
-      # DISABLED: GitHub Actions cache service is down ("Our services aren't available right now")
-      # - name: Cache Gradle
-      #   uses: gradle/actions/setup-gradle@v3
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -63,49 +62,17 @@ jobs:
       # AGP/AndroidX/Compose/Media3 — see README's note on restricted-network
       # environments where only :common-interfaces builds).
       - name: Build all modules
-        run: |
-          echo "=== Gradle version ===" && ./gradlew --version
-          echo "=== Android SDK ===" && echo "ANDROID_HOME=$ANDROID_HOME" && ls -la "$ANDROID_HOME/platforms/" 2>/dev/null | head -20 || echo "No platforms dir"
-          echo "=== Build tools ===" && ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null | head -10 || echo "No build-tools dir"
-          set -o pipefail
-          for i in 1 2 3; do
-            ./gradlew build --stacktrace --no-daemon \
-              -Dorg.gradle.internal.http.connectionTimeout=180000 \
-              -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee build.log && break
-            echo "Retry $i/3 failed, waiting 30s..."
-            sleep 30
-          done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Build all modules attempts failed"; cat build.log | tail -100; exit 1; } || true
+        run: ./gradlew build --stacktrace
 
       - name: Run unit tests
-        run: |
-          set -o pipefail
-          for i in 1 2 3; do
-            ./gradlew test --stacktrace --no-daemon \
-              -Dorg.gradle.internal.http.connectionTimeout=180000 \
-              -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee test.log && break
-            echo "Retry $i/3 failed, waiting 30s..."
-            sleep 30
-          done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Run unit tests attempts failed"; cat test.log | tail -100; exit 1; } || true
+        run: ./gradlew test --stacktrace
+
       # Debug APK — auto-signed with AGP's default debug keystore, no
       # signingConfig needed. app/build.gradle.kts has no release signing
       # config yet, so only debug is built here.
       - name: Assemble debug APK
-        run: |
-          set -o pipefail
-          for i in 1 2 3; do
-            ./gradlew :app:assembleDebug --stacktrace --no-daemon \
-              -Dorg.gradle.internal.http.connectionTimeout=180000 \
-              -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee /tmp/assembleDebug.log && break
-            echo "Retry $i/3 failed, waiting 30s..."
-            sleep 30
-          done
-          cp /tmp/assembleDebug.log assembleDebug.log 2>/dev/null || true
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble debug APK attempts failed"; cat assembleDebug.log | tail -100; exit 1; } || true
+        run: ./gradlew :app:assembleDebug --stacktrace
+
       - name: Upload debug APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -127,18 +94,8 @@ jobs:
       # RELEASE_KEY_PASSWORD as repo/environment secrets and passes them via -P flags here,
       # this step will produce a real signed artifact instead.
       - name: Assemble release APK (unsigned in CI -- no signing secrets provisioned yet)
-        run: |
-          set -o pipefail
-          for i in 1 2 3; do
-            ./gradlew :app:assembleRelease --stacktrace --no-daemon \
-              -Dorg.gradle.internal.http.connectionTimeout=180000 \
-              -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee /tmp/assembleRelease.log && break
-            echo "Retry $i/3 failed, waiting 30s..."
-            sleep 30
-          done
-          cp /tmp/assembleRelease.log assembleRelease.log 2>/dev/null || true
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble release APK attempts failed"; cat assembleRelease.log | tail -100; exit 1; } || true
+        run: ./gradlew :app:assembleRelease --stacktrace
+
       - name: Upload release APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -167,20 +124,6 @@ jobs:
           path: '**/build/reports/lint-results*'
           retention-days: 14
 
-      # Upload build logs for debugging failures
-      - name: List build log files
-        if: always()
-        run: ls -la *.log 2>/dev/null || echo "No .log files in root"; find . -name "*.log" 2>/dev/null | head -10
-      - name: Upload build logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: build-logs
-          path: |
-            *.log
-            **/*.log
-          retention-days: 14
-
   migration-ladder:
     name: Migration-ladder gate (library-storage androidTest)
     runs-on: ubuntu-latest
@@ -197,9 +140,8 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
 
-      # DISABLED: GitHub Actions cache service is down ("Our services aren't available right now")
-      # - name: Cache Gradle
-      #   uses: gradle/actions/setup-gradle@v3
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -210,67 +152,16 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-# Zero-data-loss SQLite migrations (PlaybackPositions / SubtitleOffsets
+      # Zero-data-loss SQLite migrations (PlaybackPositions / SubtitleOffsets
       # never dropped) — see README, "Zero-data-loss SQLite migrations".
       - name: Run MigrationTest on emulator
-        run: |
-          echo "=== Android SDK ===" && echo "ANDROID_HOME=$ANDROID_HOME" && ls -la "$ANDROID_HOME/platforms/" 2>/dev/null | head -20 || echo "No platforms dir"
-          echo "=== Emulator setup ==="
-          # Install and start emulator using android-actions/setup-android
-          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -path '*/bin/sdkmanager' | sort -V | tail -n 1)"
-          test -n "$SDKMANAGER" || { echo "Android sdkmanager was not found."; exit 1; }
-          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null
-          "$SDKMANAGER" --sdk_root="$SDK_ROOT" "system-images;android-34;google_apis;x86_64" "emulator"
-          
-          # Create AVD
-          echo "no" | avdmanager create avd -n test_avd -k "system-images;android-34;google_apis;x86_64" --device "pixel_6" --force
-          
-          # Start emulator
-          echo "Starting emulator..."
-          emulator -avd test_avd -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot-load -no-snapshot-save &
-          EMULATOR_PID=$!
-          
-          # Wait for emulator to boot
-          echo "Waiting for emulator to boot..."
-          for i in $(seq 1 120); do
-            if adb shell getprop sys.boot_completed 2>/dev/null | grep -q 1; then
-              echo "Emulator booted after $i checks"
-              break
-            fi
-            sleep 5
-          done
-          
-          # Verify emulator is ready
-          adb devices
-          adb shell getprop ro.build.version.sdk
-          
-# Run the test
-          set -o pipefail
-          for i in 1 2 3; do
-            ./gradlew :library-storage:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.storage.db.MigrationTest --stacktrace --no-daemon \
-              -Dorg.gradle.internal.http.connectionTimeout=180000 \
-              -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee /tmp/migrationTest.log && break
-            echo "Retry $i/3 failed, waiting 30s..."
-            sleep 30
-          done
-          cp /tmp/migrationTest.log migrationTest.log 2>/dev/null || true
-          ls -la /tmp/migrationTest.log 2>/dev/null || echo "NOT FOUND in /tmp"
-          ls -la migrationTest.log 2>/dev/null || echo "NOT FOUND in root"
-          [ ${i:-0} -gt 2 ] && { echo "All 3 MigrationTest attempts failed"; cat /tmp/migrationTest.log 2>/dev/null | tail -100; exit 1; } || true
-          
-          # Kill emulator
-          kill $EMULATOR_PID 2>/dev/null || true
-
-      - name: Verify migration test log exists
-        if: always()
-        run: |
-          echo "=== Checking for migrationTest.log ==="
-          ls -la migrationTest.log 2>/dev/null || echo "NOT FOUND in root"
-          find . -name "migrationTest.log" 2>/dev/null | head -5
-          echo "=== Current directory ===" && pwd
-          echo "=== Files in root ===" && ls -la *.log 2>/dev/null || echo "No .log files in root"
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          script: ./gradlew :library-storage:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.storage.db.MigrationTest --stacktrace
 
       - name: Upload instrumented test reports
         if: always()
@@ -278,17 +169,6 @@ jobs:
         with:
           name: migration-ladder-reports
           path: 'library-storage/build/reports/androidTests/'
-          retention-days: 14
-
-      - name: Upload migration test logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: migration-test-logs
-          path: |
-            migrationTest.log
-            /tmp/migrationTest.log
-            **/migrationTest.log
           retention-days: 14
 
   benchmarks-compile:
@@ -307,9 +187,8 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
 
-      # DISABLED: GitHub Actions cache service is down ("Our services aren't available right now")
-      # - name: Cache Gradle
-      #   uses: gradle/actions/setup-gradle@v3
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -318,27 +197,4 @@ jobs:
       # build type (not "debug" — androidComponents.beforeVariants disables
       # every variant except "benchmark"), so assembleDebug does not exist.
       - name: Assemble benchmarks
-        run: |
-          echo "=== Gradle version ===" && ./gradlew --version
-          echo "=== Android SDK ===" && echo "ANDROID_HOME=$ANDROID_HOME" && ls -la "$ANDROID_HOME/platforms/" 2>/dev/null | head -20 || echo "No platforms dir"
-          echo "=== Build tools ===" && ls -la "$ANDROID_HOME/build-tools/" 2>/dev/null | head -10 || echo "No build-tools dir"
-          set -o pipefail
-          for i in 1 2 3; do
-            ./gradlew :benchmarks:assembleBenchmark --stacktrace --no-daemon \
-              -Dorg.gradle.internal.http.connectionTimeout=180000 \
-              -Dorg.gradle.internal.http.socketTimeout=180000 \
-              -Dorg.gradle.internal.http.retry.max=3 2>&1 | tee benchmarks.log && break
-            echo "Retry $i/3 failed, waiting 30s..."
-            sleep 30
-          done
-          [ ${i:-0} -gt 2 ] && { echo "All 3 Assemble benchmarks attempts failed"; cat benchmarks.log | tail -100; exit 1; } || true
-
-      - name: Upload benchmarks logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: benchmarks-logs
-          path: |
-            benchmarks.log
-            **/benchmarks.log
-          retention-days: 14
+        run: ./gradlew :benchmarks:assembleBenchmark --stacktrace
