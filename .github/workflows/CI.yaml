@@ -154,6 +154,7 @@ jobs:
 
       # Zero-data-loss SQLite migrations (PlaybackPositions / SubtitleOffsets
       # never dropped) — see README, "Zero-data-loss SQLite migrations".
+      # The ui-presentation scaffold test rides the same booted emulator.
       - name: Run MigrationTest on emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
         with:
@@ -161,14 +162,16 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
-          script: ./gradlew :library-storage:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.storage.db.MigrationTest --stacktrace
+          script: ./gradlew :library-storage:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.storage.db.MigrationTest --stacktrace && ./gradlew :ui-presentation:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.watermelon.ui.InstrumentationScaffoldTest --stacktrace
 
       - name: Upload instrumented test reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: migration-ladder-reports
-          path: 'library-storage/build/reports/androidTests/'
+          path: |
+            library-storage/build/reports/androidTests/
+            ui-presentation/build/reports/androidTests/
           retention-days: 14
 
   benchmarks-compile:
